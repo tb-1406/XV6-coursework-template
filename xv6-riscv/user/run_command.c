@@ -12,6 +12,11 @@ void execute_line(char** args) {
     fprintf(2, "run_command: fork failed\n");
     exit(1);
   }
+  if (pid == 0) {
+    exec(args[0], args);
+    fprintf(2, "run_command: exec failed for %s\n", args [0]);
+    exit(1);
+  }
   wait(0);
   // For guidance, the model solution has 9 lines of code.
 }
@@ -34,9 +39,23 @@ int main(int argc, char *argv[]) {
     // b to the next character and continue reading. If the command string has
     // been fully entered ('\n' is found in b), execute the command by calling
     // execute_line().
-    if (*b == '\n') {
+    if (*b == '\n' || *b == '\r') {
       *b = 0;
-      if (buffer[0] == 'q' && buffer[1]==0) exit(0);
+
+      if (b > buffer && *(b - 1) == '\r') {
+        *(b - 1) = 0;
+      }
+
+      if (buffer[0] == 0) {
+        fprintf(2, "Please enter command and press enter (type 'q' to exit):\n");
+        b = buf;
+        continue;
+      }
+
+      if (buffer[0] == 'q' && buffer[1] == 0) {
+        exit(0);
+      }
+
       args[0] = buffer;
       execute_line(args);
       fprintf(2, "Please enter command and press enter (type 'q' to exit):\n");
